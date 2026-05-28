@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>Collemaggio VR</title>
+
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-environment-component"></script>
 
   <!-- Movimento limitato della camera -->
   <script>
@@ -33,116 +35,72 @@
 </head>
 
 <body>
-<a-scene>
 
-  <!-- Sfondo -->
-  <a-sky color="#87CEFA"></a-sky>
+<a-scene background="color: black" environment="preset: forest">
 
   <!-- Basilica -->
-  <a-entity
-    gltf-model="models/Basilica Collemaggio 3d.glb"
-    position="0 0 0"
-    scale="1 1 1">
-  </a-entity>
+  <a-entity gltf-model="models/Basilica Collemaggio 3d.glb"
+            position="0 0 0"
+            scale="1 1 1"></a-entity>
 
-  <a-entity
-    gltf-model="models/Lorenzo.glb"
-    position="-3 0.1 0"
-    scale="1.2 1.2 1.2">
-  </a-entity>
+  <a-entity gltf-model="models/Lorenzo.glb"
+            position="-3 0.1 0"
+            scale="1.2 1.2 1.2"></a-entity>
 
-  <a-entity
-    gltf-model="models/Giorgia.glb"
-    position="-1.8 0.1 0"
-    scale="1.4 1.4 1.4"
-    rotation="0 -70 0">
-  </a-entity>
+  <a-entity gltf-model="models/NoticeBoard.glb"
+            position="-15 0 2"
+            scale="1.2 1.2 1.2"></a-entity>
 
-  <!-- PRETE CLICCABILE + ANIMAZIONI -->
+  <a-entity gltf-model="models/Giorgia.glb"
+            position="-14 0.1 0"
+            scale="1.4 1.4 1.4"
+            rotation="0 -10 0"></a-entity>
+
+  <!-- PRETE CLICCABILE -->
   <a-entity id="prete" class="cliccabile"
-    gltf-model="models/prete.glb"
-    position="-0.3 0.1 0"
-    scale="2.5 2.5 2.5"
-    rotation="0 150 0">
+            gltf-model="models/prete.glb"
+            position="-0.3 0.1 0"
+            scale="2.5 2.5 2.5"
+            rotation="0 150 0">
 
-    <!-- AUDIO -->
     <a-sound id="audio-prete"
-      src="audio/audioPrete.mp3"
-      autoplay="false"
-      volume="1">
-    </a-sound>
-
-    <!-- TESTA (rotazione leggera) 
-    <a-animation
-      attribute="rotation"
-      to="0 160 0"
-      direction="alternate"
-      dur="300"
-      repeat="indefinite"
-      begin="parla"
-      end="stopparla">
-    </a-animation> -->
-
-    <!-- CORPO (oscillazione) 
-    <a-animation
-      attribute="position"
-      to="-0.3 0.12 0"
-      direction="alternate"
-      dur="400"
-      repeat="indefinite"
-      begin="parla"
-      end="stopparla">
-    </a-animation> -->
-
-    <!-- BOCCA (simulata con scale) 
-    <a-animation
-      attribute="scale"
-      to="2.5 2.4 2.5"
-      direction="alternate"
-      dur="150"
-      repeat="indefinite"
-      begin="parla"
-      end="stopparla">
-    </a-animation> -->  
+             src="audio/audioPrete.mp3"
+             autoplay="false"
+             volume="1"></a-sound>
 
   </a-entity>
 
   <!-- Luci -->
-  <a-light type="ambient" intensity="1"></a-light>
-  <a-light type="directional" intensity="1" position="2 4 2"></a-light>
+  <a-light type="ambient" intensity="0.35"></a-light>
+  <a-light type="directional" intensity="0.6" position="2 4 2"></a-light>
 
   <!-- Piano -->
   <a-plane
-    position="0 0 18"
-    rotation="-90 0 0"
-    width="40" height="40"
-    color="#7BB369">
-  </a-plane>
+  position="0 0 18"
+  rotation="-90 0 0"
+  width="40"
+  height="40"
+  material="color: #7BB369; roughness: 1; metalness: 0"
+></a-plane>
 
   <!-- Testo -->
-  <a-text
-    value="L'Aquila
-Capitale della Cultura 2026"
-    position="-2 2 8"
-    rotation="0 180 0"
-    align="center"
-    color="#FFFFFF"
-    width="10">
-  </a-text>
+  <a-text value="L'Aquila\nCapitale della Cultura 2026"
+          position="-2 2 8"
+          rotation="0 180 0"
+          align="center"
+          color="#FFFFFF"
+          width="10"></a-text>
 
-  <!-- CAMERA VR -->
-  <a-camera
-    position="-2 2 4"
-    movement-clamp="minX: -10; maxX: 10; minZ: -2; maxZ: 5"
-    wasd-controls="acceleration: 20"
-    cursor="rayOrigin: mouse"
-    raycaster="objects: .cliccabile">
-
-    <a-cursor></a-cursor>
+  <!-- CAMERA -->
+  <a-camera position="-2 2 4"
+            movement-clamp="minX: -10; maxX: 10; minZ: -2; maxZ: 5"
+            wasd-controls="acceleration: 20"
+            cursor="rayOrigin: mouse"
+            raycaster="objects: .cliccabile">
+      <a-cursor></a-cursor>
   </a-camera>
 
 </a-scene>
-</body>
 
 <!-- SCRIPT: audio + animazioni solo una volta -->
 <script>
@@ -154,16 +112,10 @@ Capitale della Cultura 2026"
         if (played) return;
 
         const sound = document.querySelector('#audio-prete');
-
-        // Avvia audio
         sound.components.sound.playSound();
-
-        // Avvia animazioni
-        // this.el.emit('parla');
 
         played = true;
 
-        // Quando l’audio finisce → ferma animazioni
         sound.addEventListener('sound-ended', () => {
           this.el.emit('stopparla');
         });
@@ -176,4 +128,5 @@ Capitale della Cultura 2026"
   });
 </script>
 
+</body>
 </html>
