@@ -3,87 +3,83 @@
 <head>
   <meta charset="utf-8">
   <title>Collemaggio VR</title>
-
+ 
+  <!-- A-FRAME BASE -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+ 
+  <!-- ENVIRONMENT -->
   <script src="https://unpkg.com/aframe-environment-component"></script>
-  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-
-  <!-- Movimento limitato della camera -->
+ 
+  <!-- AFRAME-EXTRAS: necessario per movement-controls (joystick Quest) -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
+ 
   <script>
     AFRAME.registerComponent('movement-clamp', {
       schema: {
         minX: {type: 'number', default: -10},
-        maxX: {type: 'number', default:  9},
+        maxX: {type: 'number', default: 9},
         minZ: {type: 'number', default: -2},
-        maxZ: {type: 'number', default:  5}
+        maxZ: {type: 'number', default: 5}
       },
       tick: function () {
         const pos = this.el.getAttribute('position');
         let x = pos.x, z = pos.z;
         let clamped = false;
-
         if (x < this.data.minX) { x = this.data.minX; clamped = true; }
         if (x > this.data.maxX) { x = this.data.maxX; clamped = true; }
         if (z < this.data.minZ) { z = this.data.minZ; clamped = true; }
         if (z > this.data.maxZ) { z = this.data.maxZ; clamped = true; }
-
         if (clamped) {
           this.el.setAttribute('position', {x: x, y: pos.y, z: z});
         }
       }
     });
-
-    /* Variabile globale: impedisce che due parlino insieme */
+ 
     let someoneTalking = false;
-
-    /* Componente generico per far parlare un personaggio */
+ 
     AFRAME.registerComponent('talk-once-generic', {
-      schema: {
-        audioId: {type: 'string'}
-      },
-
+      schema: { audioId: {type: 'string'} },
       init: function () {
         let played = false;
-
         this.el.addEventListener('click', () => {
-
-          if (someoneTalking) return;
-          if (played) return;
-
+          if (someoneTalking || played) return;
           const sound = document.querySelector(this.data.audioId);
-
           sound.components.sound.playSound();
-
           someoneTalking = true;
           played = true;
-
-          sound.addEventListener('sound-ended', () => {
-            someoneTalking = false;
-          });
+          sound.addEventListener('sound-ended', () => someoneTalking = false);
         });
       }
     });
   </script>
 </head>
-
+ 
 <body>
-
+ 
 <a-scene background="color: black" environment="preset: forest" vr-mode-ui="enabled: true">
-
-  <!-- ATTIVA I CONTROLLER DELL'OCULUS QUEST -->
-  <a-entity oculus-touch-controls="hand: left"></a-entity>
-  <a-entity oculus-touch-controls="hand: right"></a-entity>
-
+ 
+  <!-- CONTROLLER META QUEST con laser per cliccare i personaggi -->
+  <a-entity id="leftHand"
+            oculus-touch-controls="hand: left"
+            laser-controls="hand: left"
+            raycaster="objects: .cliccabile; far: 20">
+  </a-entity>
+ 
+  <a-entity id="rightHand"
+            oculus-touch-controls="hand: right"
+            laser-controls="hand: right"
+            raycaster="objects: .cliccabile; far: 20">
+  </a-entity>
+ 
   <!-- BASILICA -->
   <a-entity gltf-model="models/Basilica Collemaggio 3d.glb"
             position="0 0.1 0"
             scale="1 1 1"></a-entity>
-
+ 
   <!-- WHITEBOARD + TESTO -->
   <a-entity gltf-model="models/whiteboard.glb"
             position="13.5 0 2.5"
             scale="1.2 1.2 1.2">
-
       <a-text value="L'Aquila\n\nCapitale della Cultura 2026\n\nwww.quilaquila.it"
               position="-0.4 2.5 0.05"
               rotation="0 270 0"
@@ -93,44 +89,32 @@
               side="double">
       </a-text>
   </a-entity>
-
+ 
   <!-- LORENZO -->
   <a-entity id="lorenzo" class="cliccabile"
             gltf-model="models/Lorenzo.glb"
             position="7.65 0.2 0"
             scale="1.2 1.2 1.2"
             rotation="0 -90 0"
-            renderer="colorManagement: true"
-            material="roughness: 0.7; metalness: 0.1;"
             talk-once-generic="audioId: #audio-Lorenzo">
-
-      <a-sound id="audio-Lorenzo"
-               src="audio/audioLorenzo.mp3"
-               autoplay="false"
-               volume="1"></a-sound>
+      <a-sound id="audio-Lorenzo" src="audio/audioLorenzo.mp3"></a-sound>
   </a-entity>
-
+ 
   <!-- NOTICE BOARD -->
   <a-entity gltf-model="models/NoticeBoard.glb"
             position="-15 0.1 2"
             scale="1.2 1.2 1.2"></a-entity>
-
+ 
   <!-- GIORGIA -->
   <a-entity id="giorgia" class="cliccabile"
             gltf-model="models/Giorgia.glb"
             position="-14 0.2 0"
             scale="1.4 1.4 1.4"
             rotation="0 -10 0"
-            renderer="colorManagement: true"
-            material="roughness: 0.7; metalness: 0.1;"
             talk-once-generic="audioId: #audio-Giorgia">
-
-      <a-sound id="audio-Giorgia"
-               src="audio/audioGiorgia.mp3"
-               autoplay="false"
-               volume="1"></a-sound>
+      <a-sound id="audio-Giorgia" src="audio/audioGiorgia.mp3"></a-sound>
   </a-entity>
-
+ 
   <!-- PRETE -->
   <a-entity id="prete" class="cliccabile"
             gltf-model="models/prete.glb"
@@ -138,38 +122,31 @@
             scale="2.5 2.5 2.5"
             rotation="0 220 0"
             talk-once-generic="audioId: #audio-prete">
-
-      <a-sound id="audio-prete"
-               src="audio/audioPrete.mp3"
-               autoplay="false"
-               volume="1"></a-sound>
+      <a-sound id="audio-prete" src="audio/audioPrete.mp3"></a-sound>
   </a-entity>
-
+ 
   <!-- LUCI -->
   <a-light type="ambient" intensity="0.01"></a-light>
   <a-light type="directional" intensity="1" position="2 4 2"></a-light>
-
-  <!-- RIG VR CON MOVIMENTO A JOYSTICK -->
+ 
+  <!-- RIG VR con aframe-extras movement-controls (joystick Quest) -->
   <a-entity id="rig"
-            movement-controls="fly: true"
-            rotation-controls="enabled: true; speed: 60"
+            movement-controls="fly: false; speed: 0.15"
             movement-clamp="minX: -10; maxX: 9; minZ: -2; maxZ: 5"
             position="-2 1.6 4">
-
+ 
       <a-entity id="camera"
                 camera
-                look-controls="pointerLockEnabled: true"
-                universal-controls
-                gamepad-controls
+                look-controls
                 cursor="rayOrigin: mouse"
                 raycaster="objects: .cliccabile">
           <a-cursor></a-cursor>
       </a-entity>
-
+ 
   </a-entity>
-
+ 
 </a-scene>
-
+ 
 </body>
 </html>
-
+ 
