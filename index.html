@@ -1,156 +1,145 @@
 <!DOCTYPE html>
-<html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <title>RVA Esame 2026 - Ottimizzato</title>
-
-    <!-- A-Frame base -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- aframe-extras per movement-controls -->
-    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
-
-    <!-- COMPONENTI CUSTOM -->
-    <script>
-      // Flag globale per evitare che più audio parlino insieme
-      let someoneTalking = false;
-
-      // Componente generico per far partire un audio una sola volta
-      AFRAME.registerComponent('talk-once-generic', {
-        schema: {
-          audioId: { type: 'string' }
-        },
-        init: function () {
-          let played = false;
-          this.el.addEventListener('click', () => {
-            if (someoneTalking || played) return;
-            const sound = document.querySelector(this.data.audioId);
-            if (!sound || !sound.components || !sound.components.sound) return;
-
-            sound.components.sound.playSound();
-            someoneTalking = true;
-            played = true;
-
-            // Su alcuni browser l'evento può essere capriccioso, aggiungo anche un fallback di sicurezza
-            const onEnded = () => {
-              someoneTalking = false;
-              sound.removeEventListener('sound-ended', onEnded);
-            };
-            sound.addEventListener('sound-ended', onEnded);
-
-            // Fallback: dopo la durata stimata dell'audio, sblocca comunque
-            setTimeout(() => {
-              if (someoneTalking) someoneTalking = false;
-            }, 35000); // 35s, regola se i tuoi audio sono più corti/lunghi
-          });
-        }
-      });
-
-      // Componente per limitare il movimento in un box, ma con tick "throttled"
-      AFRAME.registerComponent('movement-clamp', {
-        schema: {
-          minX: { type: 'number', default: -10 },
-          maxX: { type: 'number', default: 9 },
-          minZ: { type: 'number', default: -2 },
-          maxZ: { type: 'number', default: 5 }
-        },
-        init: function () {
-          // Eseguiamo la logica massimo 10 volte al secondo
-          this.tick = AFRAME.utils.throttleTick(this.tick, 100, this);
-        },
-        tick: function () {
-          const pos = this.el.getAttribute('position');
-          let x = pos.x;
-          let z = pos.z;
-          let clamped = false;
-
-          if (x < this.data.minX) { x = this.data.minX; clamped = true; }
-          if (x > this.data.maxX) { x = this.data.maxX; clamped = true; }
-          if (z < this.data.minZ) { z = this.data.minZ; clamped = true; }
-          if (z > this.data.maxZ) { z = this.data.maxZ; clamped = true; }
-
-          if (clamped) {
-            this.el.setAttribute('position', { x, y: pos.y, z });
-          }
-        }
-      });
-    </script>
-  </head>
-
-  <body>
-    <a-scene
-      background="color: #000000"
-      renderer="antialias: false; physicallyCorrectLights: false; precision: mediump"
-      xr="foveationLevel: 2"
-      vr-mode-ui="enabled: true">
-
-      <!-- LUCI MOLTO SEMPLICI -->
-      <a-entity light="type: ambient; intensity: 0.6; color: #ffffff"></a-entity>
-      <a-entity light="type: directional; intensity: 0.8; color: #ffffff" position="1 3 2"></a-entity>
-
-      <!-- MODELLO BASILICA -->
-      <a-entity
-        gltf-model="models/Basilica Collemaggio 3d.glb"
-        position="0 0.1 0"
-        scale="1 1 1">
-      </a-entity>
-
-      <!-- RIG: CAMERA + CONTROLLER -->
-      <a-entity
-        id="rig"
-        position="0 1.6 3"
-        movement-controls="fly: false; speed: 0.15"
-        movement-clamp
-        rotation-controls="enabled: true">
-
-        <!-- CAMERA: niente cursor mouse in VR -->
-        <a-entity
-          id="camera"
-          camera
-          position="0 0 0">
-        </a-entity>
-
-        <!-- CONTROLLER SINISTRO: raycast per click sugli oggetti .cliccabile -->
-        <a-entity
-          id="leftHand"
-          oculus-touch-controls="hand: left"
-          laser-controls="hand: left"
-          raycaster="objects: .cliccabile; far: 20">
-        </a-entity>
-      </a-entity>
-
-      <!-- AUDIO (ESEMPI) -->
-      <a-entity
-        id="audio1"
-        sound="src: url(audio/audio1.ogg); positional: true; volume: 1.0; loop: false">
-      </a-entity>
-
-      <a-entity
-        id="audio2"
-        sound="src: url(audio/audio2.ogg); positional: true; volume: 1.0; loop: false">
-      </a-entity>
-
-      <!-- OGGETTI CLICCABILI CHE FANNO PARTIRE GLI AUDIO -->
-      <a-box
-        class="cliccabile"
-        position="-1 1.2 -2"
-        depth="0.2"
-        height="0.2"
-        width="0.2"
-        color="#FF0000"
-        talk-once-generic="audioId: #audio1">
-      </a-box>
-
-      <a-box
-        class="cliccabile"
-        position="1 1.2 -2"
-        depth="0.2"
-        height="0.2"
-        width="0.2"
-        color="#0000FF"
-        talk-once-generic="audioId: #audio2">
-      </a-box>
-
-    </a-scene>
-  </body>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Collemaggio VR</title>
+ 
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-environment-component"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
+ 
+  <script>
+    AFRAME.registerComponent('movement-clamp', {
+      schema: {
+        minX: {type: 'number', default: -10},
+        maxX: {type: 'number', default: 9},
+        minZ: {type: 'number', default: -2},
+        maxZ: {type: 'number', default: 5}
+      },
+      tick: function () {
+        const pos = this.el.getAttribute('position');
+        let x = pos.x, z = pos.z, clamped = false;
+        if (x < this.data.minX) { x = this.data.minX; clamped = true; }
+        if (x > this.data.maxX) { x = this.data.maxX; clamped = true; }
+        if (z < this.data.minZ) { z = this.data.minZ; clamped = true; }
+        if (z > this.data.maxZ) { z = this.data.maxZ; clamped = true; }
+        if (clamped) this.el.setAttribute('position', {x: x, y: pos.y, z: z});
+      }
+    });
+ 
+    let someoneTalking = false;
+ 
+    AFRAME.registerComponent('talk-once-generic', {
+      schema: { audioId: {type: 'string'} },
+      init: function () {
+        let played = false;
+        this.el.addEventListener('click', () => {
+          if (someoneTalking || played) return;
+          const sound = document.querySelector(this.data.audioId);
+          sound.components.sound.playSound();
+          someoneTalking = true;
+          played = true;
+          sound.addEventListener('sound-ended', () => someoneTalking = false);
+        });
+      }
+    });
+  </script>
+</head>
+ 
+<body>
+ 
+<a-scene background="color: black" environment="preset: forest" vr-mode-ui="enabled: true">
+ 
+  <!-- BASILICA -->
+  <a-entity gltf-model="models/Basilica Collemaggio 3d.glb"
+            position="0 0.1 0"
+            scale="1 1 1"></a-entity>
+ 
+  <!-- WHITEBOARD + TESTO -->
+  <a-entity gltf-model="models/whiteboard.glb"
+            position="13.5 0 2.5"
+            scale="1.2 1.2 1.2">
+      <a-text value="L'Aquila\n\nCapitale della Cultura 2026\n\nwww.quilaquila.it"
+              position="-0.4 2.5 0.05"
+              rotation="0 270 0"
+              align="center"
+              color="#8B0000"
+              width="4"
+              side="double">
+      </a-text>
+  </a-entity>
+ 
+  <!-- LORENZO -->
+  <a-entity id="lorenzo" class="cliccabile"
+            gltf-model="models/Lorenzo.glb"
+            position="7.65 0.2 0"
+            scale="1.2 1.2 1.2"
+            rotation="0 -90 0"
+            talk-once-generic="audioId: #audio-Lorenzo">
+      <a-sound id="audio-Lorenzo" src="audio/audioLorenzo.mp3"></a-sound>
+  </a-entity>
+ 
+  <!-- NOTICE BOARD -->
+  <a-entity gltf-model="models/NoticeBoard.glb"
+            position="-15 0.1 2"
+            scale="1.2 1.2 1.2"></a-entity>
+ 
+  <!-- GIORGIA -->
+  <a-entity id="giorgia" class="cliccabile"
+            gltf-model="models/Giorgia.glb"
+            position="-14 0.2 0"
+            scale="1.4 1.4 1.4"
+            rotation="0 -10 0"
+            talk-once-generic="audioId: #audio-Giorgia">
+      <a-sound id="audio-Giorgia" src="audio/audioGiorgia.mp3"></a-sound>
+  </a-entity>
+ 
+  <!-- PRETE -->
+  <a-entity id="prete" class="cliccabile"
+            gltf-model="models/prete.glb"
+            position="-4 0.2 0"
+            scale="2.5 2.5 2.5"
+            rotation="0 220 0"
+            talk-once-generic="audioId: #audio-prete">
+      <a-sound id="audio-prete" src="audio/audioPrete.mp3"></a-sound>
+  </a-entity>
+ 
+  <!-- LUCI -->
+  <a-light type="ambient" intensity="0.01"></a-light>
+  <a-light type="directional" intensity="1" position="2 4 2"></a-light>
+ 
+  <!-- =====================================================
+       RIG — tutto dentro qui: camera + controller
+       movement-controls usa "camera: #camera" per non
+       perdere l'orientamento dopo le rotazioni
+  ====================================================== -->
+  <a-entity id="rig"
+            movement-controls="fly: false; speed: 0.15; camera: #camera"
+            rotation-controls="enabled: true; speed: 60"
+            movement-clamp="minX: -10; maxX: 9; minZ: -2; maxZ: 5"
+            position="-2 0.6 4">
+ 
+    <!-- CAMERA -->
+    <a-entity id="camera"
+              camera
+              look-controls="enabled: false"
+              cursor="rayOrigin: mouse"
+              raycaster="objects: .cliccabile">
+        <a-cursor></a-cursor>
+    </a-entity>
+ 
+    <!-- CONTROLLER SINISTRO — figlio del rig, si muove con il player -->
+    <a-entity id="leftHand"
+              oculus-touch-controls="hand: left"
+              laser-controls="hand: left"
+              raycaster="objects: .cliccabile; far: 20">
+    </a-entity>
+ 
+    <!-- CONTROLLER DESTRO — figlio del rig, si muove con il player -->
+ 
+  </a-entity>
+ 
+</a-scene>
+ 
+</body>
 </html>
