@@ -115,13 +115,14 @@
   ====================================================== -->
   <a-entity id="rig"
             movement-controls="fly: false; speed: 0.15; camera: #camera"
+            rotation-controls="enabled: true; speed: 60"
             movement-clamp="minX: -10; maxX: 9; minZ: -2; maxZ: 5"
-            position="-2 1 4">
+            position="-2 0 4">
  
     <!-- CAMERA -->
     <a-entity id="camera"
               camera
-              look-controls
+              look-controls="enabled: false"
               cursor="rayOrigin: mouse"
               raycaster="objects: .cliccabile">
         <a-cursor></a-cursor>
