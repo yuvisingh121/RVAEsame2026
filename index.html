@@ -4,13 +4,8 @@
   <meta charset="utf-8">
   <title>Collemaggio VR</title>
  
-  <!-- A-FRAME BASE -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
- 
-  <!-- ENVIRONMENT -->
   <script src="https://unpkg.com/aframe-environment-component"></script>
- 
-  <!-- AFRAME-EXTRAS: necessario per movement-controls (joystick Quest) -->
   <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
  
   <script>
@@ -23,15 +18,12 @@
       },
       tick: function () {
         const pos = this.el.getAttribute('position');
-        let x = pos.x, z = pos.z;
-        let clamped = false;
+        let x = pos.x, z = pos.z, clamped = false;
         if (x < this.data.minX) { x = this.data.minX; clamped = true; }
         if (x > this.data.maxX) { x = this.data.maxX; clamped = true; }
         if (z < this.data.minZ) { z = this.data.minZ; clamped = true; }
         if (z > this.data.maxZ) { z = this.data.maxZ; clamped = true; }
-        if (clamped) {
-          this.el.setAttribute('position', {x: x, y: pos.y, z: z});
-        }
+        if (clamped) this.el.setAttribute('position', {x: x, y: pos.y, z: z});
       }
     });
  
@@ -57,19 +49,6 @@
 <body>
  
 <a-scene background="color: black" environment="preset: forest" vr-mode-ui="enabled: true">
- 
-  <!-- CONTROLLER META QUEST con laser per cliccare i personaggi -->
-  <a-entity id="leftHand"
-            oculus-touch-controls="hand: left"
-            laser-controls="hand: left"
-            raycaster="objects: .cliccabile; far: 20">
-  </a-entity>
- 
-  <a-entity id="rightHand"
-            oculus-touch-controls="hand: right"
-            laser-controls="hand: right"
-            raycaster="objects: .cliccabile; far: 20">
-  </a-entity>
  
   <!-- BASILICA -->
   <a-entity gltf-model="models/Basilica Collemaggio 3d.glb"
@@ -129,19 +108,38 @@
   <a-light type="ambient" intensity="0.01"></a-light>
   <a-light type="directional" intensity="1" position="2 4 2"></a-light>
  
-  <!-- RIG VR con aframe-extras movement-controls (joystick Quest) -->
+  <!-- =====================================================
+       RIG — tutto dentro qui: camera + controller
+       movement-controls usa "camera: #camera" per non
+       perdere l'orientamento dopo le rotazioni
+  ====================================================== -->
   <a-entity id="rig"
-            movement-controls="fly: false; speed: 0.15"
+            movement-controls="fly: false; speed: 0.15; camera: #camera"
             movement-clamp="minX: -10; maxX: 9; minZ: -2; maxZ: 5"
-            position="-2 1.6 4">
+            position="-2 1 4">
  
-      <a-entity id="camera"
-                camera
-                look-controls
-                cursor="rayOrigin: mouse"
-                raycaster="objects: .cliccabile">
-          <a-cursor></a-cursor>
-      </a-entity>
+    <!-- CAMERA -->
+    <a-entity id="camera"
+              camera
+              look-controls
+              cursor="rayOrigin: mouse"
+              raycaster="objects: .cliccabile">
+        <a-cursor></a-cursor>
+    </a-entity>
+ 
+    <!-- CONTROLLER SINISTRO — figlio del rig, si muove con il player -->
+    <a-entity id="leftHand"
+              oculus-touch-controls="hand: left"
+              laser-controls="hand: left"
+              raycaster="objects: .cliccabile; far: 20">
+    </a-entity>
+ 
+    <!-- CONTROLLER DESTRO — figlio del rig, si muove con il player -->
+    <a-entity id="rightHand"
+              oculus-touch-controls="hand: right"
+              laser-controls="hand: right"
+              raycaster="objects: .cliccabile; far: 20">
+    </a-entity>
  
   </a-entity>
  
@@ -149,4 +147,3 @@
  
 </body>
 </html>
- 
